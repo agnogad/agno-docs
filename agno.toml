@@ -1,6 +1,6 @@
 title = "agno"
 description = "A fast, content-first static site generator. One binary, incremental builds, MiniJinja templates, batteries included."
-base_url = "https://agno.dev"
+base_url = "https://agno-docs.pages.dev"
 language = "en"
 author = "agno contributors"
 

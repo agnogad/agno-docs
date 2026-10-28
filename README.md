@@ -2,6 +2,8 @@
 
 The documentation site for [agno](https://github.com/agnogad/agno), built with agno itself.
 
+**Live:** <https://agno-docs.pages.dev>
+
 ## Local development
 
 ```sh
