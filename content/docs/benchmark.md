@@ -59,6 +59,25 @@ Zola is the closest Rust neighbour, so it gets a dedicated run: the same corpus 
 
 Zola has no incremental mode: `zola build` deletes the output directory and renders everything, so its rebuild costs as much as a cold build. agno keeps fingerprints per page and rewrites only what changed.
 
+## bongo head-to-head
+
+bongo is a TypeScript generator that runs on Node or Bun and bundles with Rolldown and LightningCSS. Same corpus and the same interleaved method: the stock `agno new` and `bun create bongo` scaffolds, agno 0.3.7 against bongo 1.2.0, medians of 5 runs at 1,000 posts and 3 at 10,000.
+
+bongo is measured twice: with the scaffold's defaults (`bongo build` on Node, Shiki highlighting) and with its fastest setup here (`bun --bun run build`, Sugar High). The two runtimes cannot share a site, because bongo keys its build cache on the runtime.
+
+| Posts | Scenario | agno | bongo (Node, Shiki) | bongo (Bun, Sugar High) | agno vs best bongo |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1,000 | Cold build | **129 ms** | 1,839 ms | 1,079 ms | **8.4× faster** |
+| 1,000 | No-op rebuild | **22 ms** | 581 ms | 381 ms | **17× faster** |
+| 1,000 | Single-edit rebuild | **23 ms** | 586 ms | 384 ms | **17× faster** |
+| 10,000 | Cold build | **1,488 ms** | 10,903 ms | 6,172 ms | **4.1× faster** |
+| 10,000 | No-op rebuild | **225 ms** | 1,473 ms | 932 ms | **4.2× faster** |
+| 10,000 | Single-edit rebuild | **221 ms** | 1,520 ms | 935 ms | **4.2× faster** |
+
+Peak RSS of the cold build is 22 MB against 266 MB (Node) and 192 MB (Bun) at 1,000 posts, and 114 MB against 666 MB and 329 MB at 10,000. CLI startup is 2 ms against 58–65 ms.
+
+agno also writes slightly more per build (tag pages, RSS, `404.html`), so the gap is not a feature-parity artefact. bongo publishes 2.19 s for 10,000 pages on an M1 Max with twinkleplop; on this i5 the same corpus takes 6.17 s with bongo's best options. Method and caveats: `bench/BONGO.md` in the agno repository.
+
 ## Search index cost
 
 The search index is optional and off by default. Toggling `search_index` on the same corpus:
@@ -107,7 +126,7 @@ A blog-shaped corpus without section bodies is unaffected: 3,000 posts rebuild i
 - **Different runs, different machines.** These are medians on one host. A separate interleaved run differs from the matrix by a few percent.
 - **Filesystem matters.** On a Btrfs volume with `compress=zstd`, deleting a 10,000-file output tree can take over a second. Cold builds are partly a disk benchmark.
 - **Astro's fixture is optimistic.** It renders Markdown pages only and does not include highlighting, taxonomies, RSS or a sitemap. agno and Hugo both perform real highlighting.
-- **Version drift.** Numbers were recorded with agno 0.3.2/0.3.7, Hugo 0.168.0, Zola 0.23.6 and Astro 7.4.2. Rerun the suite for current versions.
+- **Version drift.** Numbers were recorded with agno 0.3.2/0.3.7, Hugo 0.168.0, Zola 0.23.6, Astro 7.4.2, bongo 1.2.0 (Node 26.7.0 / Bun 1.4.0). Rerun the suite for current versions.
 - **Absolute times are not stable.** Speed ratios survive a noisy host better than wall-clock milliseconds.
 
 ## Reproduce
@@ -118,9 +137,11 @@ python3 bench/ab.py
 python3 bench/incremental.py --count 10000 --runs 5
 python3 bench/sections.py --sections 300 --per-section 5 --runs 7
 python3 bench/zola_compare.py --count 1000 --profile code --runs 5
+python3 bench/bongo_compare.py --count 1000 --profile code --runs 5
+python3 bench/bongo_compare.py --count 10000 --runs 3 --highlighter sugarhigh --runtime bun
 ```
 
-Prerequisites, fixtures, scenarios and environment variables are documented in `bench/README.md`; the full matrix and raw samples are in `bench/REPORT.md` and `bench/ZOLA.md`.
+Prerequisites, fixtures, scenarios and environment variables are documented in `bench/README.md`; the full matrix and raw samples are in `bench/REPORT.md`, `bench/ZOLA.md` and `bench/BONGO.md`.
 
 ## Next
 
