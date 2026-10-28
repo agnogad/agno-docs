@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block bodyclass %}docs-page docs-index{% endblock %}
+{% block layout %}
+<div class="layout no-toc">
+  {% include "_sidebar.html" %}
+  <div class="nav-scrim" id="nav-scrim" hidden></div>
+
+  <div class="content-col">
+    <main class="doc" id="main">
+      <header class="docs-hero">
+        <p class="eyebrow">agno handbook · v0.3.7</p>
+        <h1>{{ page.title }}</h1>
+        {% if page.description %}<p class="lede">{{ page.description }}</p>{% endif %}
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/docs/quickstart/">Quickstart <span aria-hidden="true">→</span></a>
+          <button class="btn btn-ghost" type="button" data-open-search>Search the docs <kbd>⌘K</kbd></button>
+        </div>
+      </header>
+
+      {% if page.content %}<div class="prose docs-intro">{{ page.content|safe }}</div>{% endif %}
+
+      <div class="chapter-grid">
+        {% for item in pages %}
+        <a class="chapter-card" href="{{ item.url }}">
+          <span class="chapter-num" aria-hidden="true"></span>
+          <h2>{{ item.title }}</h2>
+          {% if item.summary %}<p>{{ item.summary }}</p>{% endif %}
+          <span class="chapter-meta">{{ item.reading_minutes }} min read</span>
+        </a>
+        {% endfor %}
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}

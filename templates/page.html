@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block bodyclass %}docs-page{% endblock %}
+{% block layout %}
+<div class="layout">
+  {% include "_sidebar.html" %}
+  <div class="nav-scrim" id="nav-scrim" hidden></div>
+
+  <div class="content-col">
+    <main class="doc" id="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/docs/">Documentation</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ page.title }}</span>
+      </nav>
+
+      <article class="prose">
+        <header class="doc-head">
+          {% if page.extra.chapter %}<p class="eyebrow">Chapter {{ page.extra.chapter }}</p>{% endif %}
+          <h1>{{ page.title }}</h1>
+          {% if page.description %}<p class="lede">{{ page.description }}</p>{% endif %}
+          <div class="doc-meta">
+            <span>{{ page.reading_minutes }} min read</span>
+            <span>{{ page.words }} words</span>
+            {% if page.updated_display %}<span>Updated {{ page.updated_display }}</span>{% endif %}
+          </div>
+        </header>
+
+        {{ page.content|safe }}
+      </article>
+
+      {% if page.prev or page.next %}
+      <nav class="pager" aria-label="Chapter navigation">
+        {% if page.prev %}
+        <a class="pager-link prev" href="{{ page.prev.url }}" rel="prev">
+          <span class="pager-label">← Previous</span>
+          <span class="pager-title">{{ page.prev.title }}</span>
+        </a>
+        {% else %}<span class="pager-link empty"></span>{% endif %}
+        {% if page.next %}
+        <a class="pager-link next" href="{{ page.next.url }}" rel="next">
+          <span class="pager-label">Next →</span>
+          <span class="pager-title">{{ page.next.title }}</span>
+        </a>
+        {% else %}<span class="pager-link empty"></span>{% endif %}
+      </nav>
+      {% endif %}
+
+      <div class="doc-foot">
+        <p>Found a mistake? <a href="https://github.com/agnogad/agno/issues" rel="noopener">Open an issue</a> or <a href="https://github.com/agnogad/agno/pulls" rel="noopener">send a pull request</a>.</p>
+      </div>
+    </main>
+
+    <aside class="toc" aria-label="On this page">
+      {% if page.toc|length > 1 %}
+      <div class="toc-inner">
+        <h2>On this page</h2>
+        {{ page.toc_html|safe }}
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

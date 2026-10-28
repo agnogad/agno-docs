@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block bodyclass %}docs-page{% endblock %}
+{% block layout %}
+<div class="layout no-toc">
+  {% include "_sidebar.html" %}
+  <div class="nav-scrim" id="nav-scrim" hidden></div>
+  <div class="content-col">
+    <main class="doc" id="main">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/docs/">Documentation</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ page.title }}</span>
+      </nav>
+      <article class="prose">
+        <header class="doc-head">
+          <p class="eyebrow">Taxonomy</p>
+          <h1>{{ page.title }}</h1>
+          {% if page.description %}<p class="lede">{{ page.description }}</p>{% endif %}
+        </header>
+        {% if page.content %}{{ page.content|safe }}{% endif %}
+        <ul class="term-list">
+          {% for term in page.terms %}
+          <li>
+            <a href="{{ term.url }}">{{ term.name }}</a>
+            <span class="count">{{ term.count }} pages</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+    </main>
+  </div>
+</div>
+{% endblock %}
