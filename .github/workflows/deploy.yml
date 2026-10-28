@@ -1,0 +1,53 @@
+name: deploy
+
+# Every push to main rebuilds the docs with the latest agno release and
+# uploads dist/ to Cloudflare Pages. Pages' own build image has no Rust, so the
+# build happens here and only the finished static files are uploaded.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # The static musl build runs on any distribution. Rolling rather than
+      # pinned: the docs describe the released generator, so they should be
+      # built by it. A release that breaks the docs fails this job, which is
+      # the signal we want.
+      - name: install agno
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          url=$(gh release view --repo agnogad/agno --json assets \
+            --jq '.assets[] | select(.name | endswith("x86_64-unknown-linux-musl.tar.gz")) | .url')
+          curl -fsSL "$url" -o /tmp/agno.tar.gz
+          tar -xzf /tmp/agno.tar.gz -C /tmp
+          mkdir -p "$HOME/.local/bin"
+          install -m755 /tmp/agno-*/agno "$HOME/.local/bin/agno"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          agno --version
+
+      - name: build
+        run: agno build --clean --minify
+
+      - name: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=agno-docs
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
